@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
       required: [true, "Email is required"],
       lowercase: true,
     },
@@ -18,22 +17,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
-    },
-    avatar: {
-      type: String, // cloudinary string
-      required: true,
-    },
-    coverImage: {
-      type: String,
-    },
-    refreshToken: {
-      type: String,
-    },
+    // fullName: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    //   index: true,
+    // },
+    // avatar: {
+    //   type: String, // cloudinary string
+    //   required: true,
+    // },
+    // coverImage: {
+    //   type: String,
+    // },
+    // refreshToken: {
+    //   type: String,
+    // },
   },
   { timestamps: true }
 );
