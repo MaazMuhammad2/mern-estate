@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const signup = asyncHandler(async (req, res, next) => {
   // get user detail from the frontend
@@ -52,4 +53,41 @@ const signup = asyncHandler(async (req, res, next) => {
   res.status(201).json("user created successfully");
 });
 
-export { signup };
+const signin = asyncHandler(async (req, res) => {
+  // req body -> data
+  // username or email
+  // find the user
+  // password check
+
+  const { username, email, password } = req.body;
+
+  if (!username && !email) {
+    throw new ApiError(400, "username and email is required");
+  }
+
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!user) {
+    throw new ApiError(400, "user does not exist");
+  }
+
+  const validPassword = bcryptjs.compareSync(password, user.password);
+
+  if (!validPassword) {
+    throw new ApiError(400, "Wrong credentials!");
+  }
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+  console.log(user)
+
+  const loggedinUser = await User.findById(user._id).select('-password')
+
+  return res
+    .status(200)
+    .cookie("access-token", token, { httpOnly: true })
+    .json(loggedinUser);
+});
+export { signup, signin };
