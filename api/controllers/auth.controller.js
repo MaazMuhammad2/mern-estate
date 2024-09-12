@@ -68,7 +68,7 @@ const signin = asyncHandler(async (req, res) => {
   // const user = await User.findOne({
   //   $or: [{ username }, { email }],
   // });
-  const user = await User.findOne({email});
+  const user = await User.findOne({ email });
 
   if (!user) {
     throw new ApiError(400, "user does not exist");
@@ -82,13 +82,52 @@ const signin = asyncHandler(async (req, res) => {
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
-  console.log(user)
+  console.log(user);
 
-  const loggedinUser = await User.findById(user._id).select('-password')
+  const loggedinUser = await User.findById(user._id).select("-password");
 
   return res
     .status(200)
     .cookie("access-token", token, { httpOnly: true })
     .json(loggedinUser);
 });
-export { signup, signin };
+
+const google = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    throw new ApiError(400, "Don't have an user");
+  }
+
+  if (user) {
+    // sign in the user
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const loggedinUser = await User.findById(user._id).select("-password");
+    res
+      .cookie("access_token", token, { httpOnly: true })
+      .status(200)
+      .json(loggedinUser);
+  } else {
+    // sign up the user
+    const generatedPassword =
+      Math.random().toString(36).slice(-8) +
+      Math.random().toString(36).slice(-8); // generated 16 character password
+    const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+    const newUser = new User({
+      username:
+        req.body.name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-4),
+      password: hashedPassword,
+      email: req.body.email,
+      avatar: req.body.photo,
+    });
+    await newUser.save();
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const { password: pass, ...rest } = user._doc;
+    res
+      .cookie("access-token", token, { httpOnly: true })
+      .status(200)
+      .json(rest);
+  }
+});
+
+export { signup, signin, google };
