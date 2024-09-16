@@ -88,7 +88,7 @@ const signin = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("access-token", token, { httpOnly: true })
+    .cookie("access_token", token, { httpOnly: true })
     .json(loggedinUser);
 });
 
@@ -124,7 +124,7 @@ const google = asyncHandler(async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     const { password: pass, ...rest } = user._doc;
     res
-      .cookie("access-token", token, { httpOnly: true })
+      .cookie("access_token", token, { httpOnly: true })
       .status(200)
       .json(rest);
   }
