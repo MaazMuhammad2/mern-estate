@@ -31,4 +31,13 @@ import bcryptjs from "bcryptjs";
         throw new ApiError(error);
     }
     });
-export { updateUser };
+
+    const deleteUser = asyncHandler(async(req, res)=>{
+        if (req.user.id !== req.params.id) {
+            throw new ApiError(401, "you can only delete your own account!")
+        }
+        await User.findByIdAndDelete(req.params.id)
+        res.clearCookie('access_token')
+        res.status(200).json("User has been deleted!")
+    })
+export { updateUser, deleteUser };
