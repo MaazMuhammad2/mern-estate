@@ -86,10 +86,12 @@ const signin = asyncHandler(async (req, res) => {
 
   const loggedinUser = await User.findById(user._id).select("-password");
 
+  res.cookie("access_token", token, { httpOnly: true })
+
   return res
     .status(200)
-    .cookie("access_token", token, { httpOnly: true })
     .json(loggedinUser);
+
 });
 
 const google = asyncHandler(async (req, res) => {

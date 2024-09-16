@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 import {
   getDownloadURL,
@@ -7,18 +7,25 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateUserFailure,
+  updateUserSuccess,
+  updateUserStart,
+} from "../redux/user/userSlice";
 
 export default function Profile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef(null);
   const [file, setFile] = useState(undefined);
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
+  const [updateSucces, setUpdateSuccess] = useState(false);
+  const dispatch = useDispatch();
   // console.log(file);
-  console.log("this is the filePerc", filePerc);
-  console.log("this is the form data", formData);
-  console.log(fileUploadError);
+  // console.log("this is the filePerc", filePerc);
+  // console.log("this is the form data", formData);
+  // console.log(fileUploadError);
 
   useEffect(() => {
     if (file) {
@@ -35,10 +42,12 @@ export default function Profile() {
     // state_changed:>> This is an event that Firebase triggers whenever the state of the file upload changes.
     // The snapshot is an object that contains the current state of the upload at the moment this event (state_changed) is triggered
 
-    uploadTask.on("state_changed",
+    uploadTask.on(
+      "state_changed",
       (snapshot) => {
         // Handle progress
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setFilePerc(Math.round(progress));
       },
       (error) => {
@@ -52,14 +61,47 @@ export default function Profile() {
         );
       }
     );
-   
   };
   console.log("this is another form Data", formData);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      dispatch(updateUserStart());
+
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (data.success === false) {
+        dispatch(updateUserFailure(data.message));
+        return;
+      }
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+    } catch (error) {
+      dispatch(updateUserFailure(error.message));
+    }
+  };
 
   return (
     <div className="p-3 max-w-xl mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
-      <form className="flex flex-col  gap-4" action="">
+      <form className="flex flex-col  gap-4" action="" onSubmit={handleSubmit}>
         <input
           type="file"
           onChange={(e) => setFile(e.target.files[0])}
@@ -93,22 +135,30 @@ export default function Profile() {
           type="text"
           placeholder="username"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser.username}
           id="username"
+          onChange={handleChange}
         />
         <input
           type="email"
           placeholder="email"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser.email}
           id="email"
+          onChange={handleChange}
         />
         <input
           type="password"
           placeholder="password"
           className="border p-3 rounded-lg"
           id="password"
+          onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-95">
-          Update
+        <button
+          disabled={loading}
+          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-95"
+        >
+          {loading ? "loading..." : " Update"}
         </button>
       </form>
 
@@ -116,6 +166,9 @@ export default function Profile() {
         <span className="text-red-700 cursor-pointer">Delete Account</span>
         <span className="text-green-700 cursor-pointer">Sign out</span>
       </div>
+
+      <p className="text-red-700 mt-5">{error ? error : ""}</p>
+      <p className="text-green-700 mt-5">{updateSucces ? 'User is updated successfully!' : ""}</p>
     </div>
   );
 }
