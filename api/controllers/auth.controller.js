@@ -86,12 +86,9 @@ const signin = asyncHandler(async (req, res) => {
 
   const loggedinUser = await User.findById(user._id).select("-password");
 
-  res.cookie("access_token", token, { httpOnly: true })
+  res.cookie("access_token", token, { httpOnly: true });
 
-  return res
-    .status(200)
-    .json(loggedinUser);
-
+  return res.status(200).json(loggedinUser);
 });
 
 const google = asyncHandler(async (req, res) => {
@@ -132,4 +129,16 @@ const google = asyncHandler(async (req, res) => {
   }
 });
 
-export { signup, signin, google };
+const signOut = asyncHandler(async (req, res) => {
+  // if (req.user.id !== req.params.id) {
+  //   throw new ApiError(400, "You can only sign out your own account!")
+  // } we done this when we was deleting the user but now here ig
+ try {
+   res.clearCookie("access_token");
+   res.status(200).json("User has been logged out!");
+ } catch (error) {
+  throw new ApiError(error)
+ }
+});
+
+export { signup, signin, google, signOut };
