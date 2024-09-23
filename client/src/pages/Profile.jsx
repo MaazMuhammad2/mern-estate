@@ -66,7 +66,7 @@ export default function Profile() {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
           setFormData({ ...formData, avatar: downloadURL })
         );
-      }
+      },
     );
   };
   console.log("this is another form Data", formData);
