@@ -69,7 +69,7 @@ export default function Profile() {
       },
     );
   };
-  console.log("this is another form Data", formData);
+  // console.log("this is another form Data", formData);
 
   const handleChange = (e) => {
     setFormData({
