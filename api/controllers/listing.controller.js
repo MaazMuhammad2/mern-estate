@@ -20,7 +20,26 @@ const deleteListing = asyncHandler(async (req, res) => {
   }
 
   await Listing.findByIdAndDelete(req.params.id);
-  res.status(200).json("Listing deleted successfully")
+  res.status(200).json("Listing deleted successfully");
 });
 
-export { createListing, deleteListing };
+const updateListing = asyncHandler(async (req, res) => {
+  const listing = await Listing.findById(req.params.id);
+
+  if (!listing) {
+    throw new ApiError(404, "Listing not found!");
+  }
+  if (req.user.id !== listing.userRef) {
+    throw new ApiError(401, "You can only update your own listing");
+  }
+
+  try {
+    const updatedListing = await Listing.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedListing);
+} catch (error) {
+    console.error("Error updating listing:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+}
+});
+
+export { createListing, deleteListing, updateListing };
