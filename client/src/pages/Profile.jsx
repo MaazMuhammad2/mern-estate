@@ -19,6 +19,7 @@ import {
   signOutUserSuccess,
   signOutUserStart,
 } from "../redux/user/userSlice";
+import UpdateListing from "./UpdateListing";
 
 export default function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -301,7 +302,9 @@ export default function Profile() {
                 >
                   Delete
                 </button>
-                <button className="text-green-700 uppercase">Edit</button>
+                <Link to={`/update-listing/${listing._id}`}>
+                  <button className="text-green-700 uppercase">Edit</button>
+                </Link>
               </div>
             </div>
           ))}

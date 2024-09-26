@@ -42,4 +42,12 @@ const updateListing = asyncHandler(async (req, res) => {
 }
 });
 
-export { createListing, deleteListing, updateListing };
+const getListing = asyncHandler(async(req,res)=>{
+  const listing = await Listing.findById(req.params.id);
+  if (!listing) {
+    throw new ApiError(404, 'Listing not found!')
+  }
+  res.status(200).json(listing)
+})
+
+export { createListing, deleteListing, updateListing, getListing };
