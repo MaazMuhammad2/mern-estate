@@ -50,4 +50,17 @@ const getUserListings = asyncHandler(async (req, res) => {
     throw new ApiError(401, "You can only view your own lisitngs");
   }
 });
-export { updateUser, deleteUser, getUserListings };
+
+const getUser = asyncHandler(async (req, res) => {
+ try {
+   const user = await User.findById(req.params.id).select("-password")
+   if (!user) {
+     throw new ApiError(400, "User not found");
+   }
+   res.status(200).json(user)
+ } catch (error) {
+  throw new ApiError(400, error)
+ }
+});
+
+export { updateUser, deleteUser, getUserListings, getUser };
