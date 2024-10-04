@@ -58,22 +58,19 @@ const getListings = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit) || 9;
   const startIndex = parseInt(req.query.startIndex) || 0;
 
-  let offer = req.query.offer;
-  if (offer === undefined || offer === false) {
-    offer = {
-      $in: [false, true],
-    };
+  // Convert string "true"/"false" to boolean values
+  let offer = req.query.offer === "true";
+  if (req.query.offer === undefined) {
+    offer = { $in: [true, false] };
   }
 
-  let furnished = req.query.furnished;
-  if (furnished === undefined || furnished === false) {
-    furnished = {
-      $in: [true, false],
-    };
+  let furnished = req.query.furnished === "true";
+  if (req.query.furnished === undefined) {
+    furnished = { $in: [true, false] };
   }
 
-  let parking = req.query.parking;
-  if (parking === undefined || parking === false) {
+  let parking = req.query.parking === "true";
+  if (req.query.parking === undefined) {
     parking = { $in: [true, false] };
   }
 
@@ -84,22 +81,33 @@ const getListings = asyncHandler(async (req, res) => {
 
   const searchTerm = req.query.searchTerm || "";
   const sort = req.query.sort || "createdAt";
-  const order = req.query.order || "desc";
+  
+  // Ensure order is either "asc" or "desc"
+  const order = req.query.order === "asc" || req.query.order === "desc" ? req.query.order : "desc";
 
-  const listings = await Listing.find({
-    name: { $regex: searchTerm, $options: "i" },
-    offer,
-    furnished,
-    parking,
-    type,
-  })
-    .sort({
-      [sort]: order,
+  try {
+    const listings = await Listing.find({
+      name: { $regex: searchTerm, $options: "i" },
+      offer,
+      furnished,
+      parking,
+      type,
     })
-    .limit(limit)
-    .skip(startIndex);
+      .sort({
+        [sort]: order, // Dynamically apply sorting field and order
+      })
+      .limit(limit)
+      .skip(startIndex);
 
-  return res.status(200).json(listings);
+    return res.status(200).json(listings);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 });
+
 
 export { createListing, deleteListing, updateListing, getListing, getListings };
