@@ -84,10 +84,12 @@ const getListings = asyncHandler(async (req, res) => {
   
   // Ensure order is either "asc" or "desc"
   const order = req.query.order === "asc" || req.query.order === "desc" ? req.query.order : "desc";
+  const nameFilter = searchTerm ? { name: { $regex: searchTerm, $options: "i" } } : {};
+
 
   try {
     const listings = await Listing.find({
-      name: { $regex: searchTerm, $options: "i" },
+      nameFilter,
       offer,
       furnished,
       parking,

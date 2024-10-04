@@ -51,13 +51,18 @@ export default function Search() {
 
     const fetchListings = async () => {
       setLoading(true);
-      const searchQuery = urlParams.toString();
-      const res = await fetch(`/api/listing/get?${searchQuery}`);
-      console.log(`/api/listing/get?${searchQuery}`);
-      const data = await res.json();
-      setListings(data);
+      const searchQuery = urlParams.toString(); // Ensure this string doesn't have extra spaces
+      try {
+        const res = await fetch(`/api/listing/get?${searchQuery}`);
+        const data = await res.json();
+        console.log("Response Data:", data); // Log full response to see if it's as expected
+        setListings(data); // Set the listings only if data is returned as expected
+      } catch (error) {
+        console.error("Error fetching listings:", error); // Log errors
+      }
       setLoading(false);
     };
+    
     fetchListings();
   }, [location.search]);
 
@@ -199,7 +204,7 @@ export default function Search() {
             <label className="font-semibold">Sort:</label>
             <select
               onChange={handleChange}
-              defaultValue={"created_at_desc"}
+              // defaultValue={"created_at_desc"}
               value={`${sidebardata.sort}_${sidebardata.order}`}
               id="sort_order"
               className="border rounded-lg p-3"
@@ -218,10 +223,27 @@ export default function Search() {
       </div>
 
       {/* right side */}
-      <div className="">
+      <div className="flex-1">
         <h1 className="text-3xl font-semibold border-b p-3 text-slate-700 mt-5">
           Listing results:
         </h1>
+
+        <div className="p-7 flex flex-wrap gap-3">
+          {!loading && listings.length === 0 && (
+            <p className="text-xl text-slate-700 text-center w-full">
+              No listing found!
+            </p>
+          )}
+          {loading && (
+            <p className="text-xl  text-slate-700 text-center w-full">
+              Loading...
+            </p>
+          )}
+          {!loading && listings.length>0 && listings.map((listing)=>{
+            <ListingItem key={listing._id} listing={listing}/>
+          })
+          }
+        </div>
       </div>
     </div>
   );
